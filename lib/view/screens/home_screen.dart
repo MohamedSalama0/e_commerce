@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:e_commerce/common/app_style.dart';
+import 'package:e_commerce/common/constants.dart';
 import 'package:e_commerce/common/size_config.dart';
 import 'package:e_commerce/common/widgets.dart';
 import 'package:e_commerce/view/screens/details_card_screen.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:rive/rive.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -19,6 +21,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectIndex = 0;
 
+  Artboard? _riverArtboard;
+  SMIInput<double>? _progress;
+  StateMachineController? controller;
+
+  @override
+  void initState() {
+    super.initState();
+    rootBundle.load("assets/images/liquid_download.riv").then((value) {
+      final file = RiveFile.import(value);
+      final artboard = file.mainArtboard;
+      controller = StateMachineController.fromArtboard(artboard, 'Guido SM');
+      if (controller != null) {
+        artboard.addController(controller!);
+        _progress = controller!.findInput('input');
+        setState(() => _riverArtboard = artboard);
+      }
+    });
+  }
+
+  RiveAnimationController<dynamic>? riveAnimationController;
   @override
   Widget build(BuildContext context) {
     List<String> images = [
@@ -37,6 +59,21 @@ class _HomeScreenState extends State<HomeScreen> {
             header(),
             buildHeightSpace(5),
             sliderSection(images),
+            buildHeightSpace(5),
+            Container(
+              color: Colors.red,
+              height: 100,
+              width: 100,
+              child: const Center(
+                child: RiveAnimation.asset(
+                  'assets/images/liquid_download.riv',
+                  artboard: 'Guido SM',
+
+                  // alignment: Alignment.center,
+                  // artboard: _riverArtboard!,
+                ),
+              ),
+            ),
             buildHeightSpace(5),
             Expanded(
               child: GridView.builder(
@@ -95,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFE7E9F5),
       // backgroundColor: Colors.white,
 
-      bottomNavigationBar: const BottomNavBar(),
+      // bottomNavigationBar: const BottomNavBar(),
 
       // _widgetOptions.elementAt(_selectIndex)
     );
@@ -161,20 +198,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         InkWell(
-          onTap: () {},
+          onTap: () {
+            _progress!.value++;
+          },
           child: Container(
             height: getResponsiveScreenHeight(5),
-            width: getResponsiveScreenWidth(12),
+            width: getResponsiveScreenWidth(10.7),
             clipBehavior: Clip.antiAliasWithSaveLayer,
             padding: EdgeInsets.all(getResponsiveScreenWidth(0.9)),
-            decoration: const BoxDecoration(
-              color: Colors.white54,
-              shape: BoxShape.circle,
+            decoration: BoxDecoration(
+              color: mainColor,
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
               child: SvgPicture.asset(
                 'assets/images/cart_icon.svg',
-                color: Colors.grey,
+                color: const Color.fromARGB(255, 247, 250, 255),
                 width: 27,
                 // alignment: Alignment.center,
               ),
@@ -183,30 +222,37 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         InkWell(
           onTap: () {},
-          borderRadius: BorderRadius.circular(50),
+          // borderRadius: BorderRadius.circular(50),
           child: Stack(
             children: [
               Container(
                 height: getResponsiveScreenHeight(5),
-                width: getResponsiveScreenWidth(12),
+                width: getResponsiveScreenWidth(10.7),
                 padding: EdgeInsets.all(getResponsiveScreenWidth(2.2)),
-                decoration: const BoxDecoration(
-                  color: Colors.white60,
-                  shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                  color: mainColor,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: SvgPicture.asset(
                   'assets/images/Bill_icon.svg',
-                  color: Colors.grey,
+                  color: const Color.fromARGB(255, 247, 250, 255),
+                  // theme: SvgTheme(),
                   width: 10,
                 ),
               ),
-              Container(
-                height: getResponsiveScreenHeight(2),
-                width: getResponsiveScreenWidth(2),
-                margin: EdgeInsets.fromLTRB(getResponsiveScreenWidth(2),
-                    getResponsiveScreenHeight(0.2), 0, 0),
-                decoration: const BoxDecoration(
-                    color: Colors.red, shape: BoxShape.circle),
+              Positioned(
+                bottom: 29,
+                top: 0,
+                left: 29,
+                right: 0,
+                child: Container(
+                  height: getResponsiveScreenHeight(2),
+                  width: getResponsiveScreenWidth(2),
+                  // margin: EdgeInsets.fromLTRB(getResponsiveScreenWidth(2),
+                  //     getResponsiveScreenHeight(0.2), 0, 0),
+                  decoration: const BoxDecoration(
+                      color: iconColor2, shape: BoxShape.circle),
+                ),
               ),
             ],
           ),
@@ -279,7 +325,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 ),
               ),
               AnimatedContainer(
-                duration: Duration(seconds: 1),
+                duration: const Duration(seconds: 1),
                 curve: Curves.fastLinearToSlowEaseIn,
                 width: index == currentIndex
                     ? displayWidth * .31

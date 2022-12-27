@@ -7,7 +7,7 @@ AnimatedContainer? dotIndicator(index, int currentPage) {
   return AnimatedContainer(
     margin: const EdgeInsets.only(left: 5),
     duration: const Duration(milliseconds: 400),
-    height: 10.0,
+    height: 8.0,
     width: currentPage == index ? 25.0 : 10,
     decoration: BoxDecoration(
         color: currentPage == index ? kPrimaryColor : kGrey,
@@ -24,7 +24,7 @@ Widget defaultButton({required VoidCallback onPressed, required String text}) {
     child: Container(
       clipBehavior: Clip.antiAliasWithSaveLayer,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22.0),
+        borderRadius: BorderRadius.circular(20.0),
       ),
       child: TextButton(
         onPressed: onPressed,
@@ -109,11 +109,13 @@ Widget socialMediaSection() {
   return Column(
     children: [
       Row(
-        children: 
-        [
-          buildDivider(), 
-          const Text('Or',style: TextStyle(color: kPrimaryColor,)),
-          buildDivider(), 
+        children: [
+          buildDivider(),
+          const Text('Or',
+              style: TextStyle(
+                color: kPrimaryColor,
+              )),
+          buildDivider(),
         ],
       ),
       buildHeightSpace(4),
@@ -142,11 +144,11 @@ Widget buildDivider() {
   return Expanded(
     child: Divider(
       thickness: 1.5,
-        indent: getResponsiveScreenWidth(5),
-        endIndent: getResponsiveScreenWidth(5),
-        height: 1.5,
-        color: Colors.grey,
-      ),
+      indent: getResponsiveScreenWidth(5),
+      endIndent: getResponsiveScreenWidth(5),
+      height: 1.5,
+      color: Colors.grey,
+    ),
   );
 }
 
@@ -160,8 +162,6 @@ Widget customSuffixIcon({String? svgIcon, double inputScale = 15}) {
     ),
   );
 }
-
-
 
 Widget onBordNavBtn({required String name, required VoidCallback onPressed}) {
   var sizeW = SizeConfig.screenWidth;
@@ -177,7 +177,6 @@ Widget onBordNavBtn({required String name, required VoidCallback onPressed}) {
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF335087),
-
       ),
       onPressed: onPressed,
       child: Padding(
@@ -191,3 +190,25 @@ Widget onBordNavBtn({required String name, required VoidCallback onPressed}) {
     ),
   );
 }
+
+
+
+  showToast({error,context}) {
+    return ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(50)),
+          // clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: Text(
+            error,
+            style: const TextStyle(fontSize: 18),
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        // padding: const EdgeInsets.all(15),
+        backgroundColor: Colors.red,
+        width: SizeConfig.screenWidth! / 1.5,
+      ),
+    );
+  }

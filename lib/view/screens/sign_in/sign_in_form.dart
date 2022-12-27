@@ -1,5 +1,10 @@
 import 'package:e_commerce/common/size_config.dart';
+import 'package:e_commerce/cubit/general_cubit.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 import '../../../common/app_style.dart';
 import '../../../common/constants.dart';
 import '../../../common/widgets.dart';
@@ -17,58 +22,118 @@ class _SignInFormState extends State<SignInForm> {
   final _formKey = GlobalKey<FormState>();
   final List<String> errors = [];
 
-
   late String email;
   late String password;
 
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  Artboard? _riverArtboard;
+  SMIInput<double>? _progress;
+  StateMachineController? controller;
+
+  @override
+  void initState() {
+    super.initState();
+    rootBundle.load("assets/images/liquid_download.riv").then((value) {
+      final file = RiveFile.import(value);
+      final artboard = file.mainArtboard;
+      controller = StateMachineController.fromArtboard(artboard, 'Guido SM');
+      if (controller != null) {
+        artboard.addController(controller!);
+        _progress = controller!.findInput('input');
+        setState(() => _riverArtboard = artboard);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          buildEmailFormField(),
-          buildHeightSpace(8),
-          buildPasswordFormField(),
-          buildHeightSpace(1),
-          Container(
-              margin: const EdgeInsets.only(left: 3, top: 10),
-              child: FormError(errors: errors)),
-          Row(
+    return BlocConsumer<GeneralCubit, GeneralState>(
+      listener: (context, state) {
+        if (state is UserSignInErrorState) {
+          showToast(error: state.error, context: context);
+        }
+        if (state is UserSignInLoadingState) {
+          _progress!.value++;
+        }
+        if (state is UserSignInSucssesState) {
+          print('Login Succsefully');
+          Navigator.of(context).pushNamed(
+            'HomeScreen',
+          );
+          // Navigator.of(context).pushNamedAndRemoveUntil(
+          //     'HomeScreen', (Route<dynamic> route) => false);
+        }
+      },
+      builder: (context, state) {
+        return Form(
+          key: _formKey,
+          child: Column(
             children: [
-              Checkbox(
-                value: value,
-                activeColor: kPrimaryColor,
-                onChanged: (remember) {
-                  setState(() {
-                    value = remember!;
-                  });
-                },
+              buildEmailFormField(),
+              buildHeightSpace(8),
+              buildPasswordFormField(),
+              buildHeightSpace(1),
+              Container(
+                  margin: const EdgeInsets.only(left: 3, top: 10),
+                  child: FormError(errors: errors)),
+              Row(
+                children: [
+                  Checkbox(
+                    value: value,
+                    activeColor: kPrimaryColor,
+                    onChanged: (remember) {
+                      setState(() {
+                        value = remember!;
+                      });
+                    },
+                  ),
+                  const Text('Remember me', style: TextStyle(fontSize: 13)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, 'ForgetPasswordScreen');
+                    },
+                    child: const Text('Forget password !',
+                        style: TextStyle(
+                            decoration: TextDecoration.underline,
+                            fontSize: 13)),
+                  )
+                ],
               ),
-              const Text('Remember me', style: TextStyle(fontSize: 13)),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, 'ForgetPasswordScreen');
-                },
-                child: const Text('Forget password !',
-                    style: TextStyle(
-                        decoration: TextDecoration.underline, fontSize: 13)),
-              )
+              buildHeightSpace(5),
+              state is UserSignInLoadingState
+                  ? const Center(child: CircularProgressIndicator())
+                  : defaultButton(
+                      onPressed: () {
+                        // Navigator.of(context).pushNamedAndRemoveUntil(
+                        //     'HomeScreen', (Route<dynamic> route) => false);
+
+                        print(emailController.text);
+                        if (_formKey.currentState!.validate() &&
+                            emailValidatorRegExp
+                                .hasMatch(emailController.text)) {
+                          // lkd l ekdkf  cmdlmflk kd,m ,ldfm,mfv dlkv dfllmm
+                          _formKey.currentState!.save();
+                          //jlikl
+
+                          BlocProvider.of<GeneralCubit>(context).userSignIn(
+                            emailController.text,
+                            passwordController.text,
+                          );
+                          // state is UserSignInSucssesState
+                          //     ? Navigator.of(context).pushNamedAndRemoveUntil(
+                          //         'HomeScreen', (Route<dynamic> route) => false)
+                          //     : null;
+                        }
+                      },
+                      text: 'Login',
+                    ),
             ],
           ),
-          buildHeightSpace(5),
-          defaultButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                Navigator.pushNamed(context, 'HomeScreen');
-              }
-            },
-            text: 'Login',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -94,8 +159,10 @@ class _SignInFormState extends State<SignInForm> {
       width: getResponsiveScreenHeight(40),
       height: getResponsiveScreenHeight(7),
       child: TextFormField(
+        controller: emailController,
         onSaved: ((newValue) => email = newValue!),
         validator: (value) {
+          // email = value;
           if (value!.isEmpty) {
             addError(error: kEmailNullError);
           } else if (!emailValidatorRegExp.hasMatch(value) &&
@@ -129,6 +196,7 @@ class _SignInFormState extends State<SignInForm> {
       width: getResponsiveScreenHeight(40),
       height: getResponsiveScreenHeight(7),
       child: TextFormField(
+        controller: passwordController,
         onSaved: ((newValue) => password = newValue!),
         validator: (value) {
           if (value!.isEmpty) {

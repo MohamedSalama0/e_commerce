@@ -20,7 +20,7 @@ class _SignUpBodyState extends State<SignUpBody> {
         width: double.infinity,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
-          shrinkWrap: true,
+          // shrinkWrap: true,
           slivers: <Widget>[
             customAppBar(context),
             SliverToBoxAdapter(
@@ -67,30 +67,30 @@ class _SignUpBodyState extends State<SignUpBody> {
 
   SliverAppBar customAppBar(BuildContext context) {
     return SliverAppBar(
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: [
-                  Positioned(
-                      top: getResponsiveScreenHeight(-2.7),
-                      left: getResponsiveScreenWidth(-0.3),
-                      child: SizedBox(
-                          width: getResponsiveScreenWidth(40),
-                          child: Image.asset(
-                            'assets/images/signup_top.png',
-                            color: Colors.white.withOpacity(0.9),
-                            colorBlendMode: BlendMode.modulate,
-                          ))),
-                ],
-              ),
-            ),
-            title: const Text("Sign up", style: kTitle1),
-            leading: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(Icons.arrow_back_ios_sharp),
-            ),
-          );
+      pinned: true,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          children: [
+            Positioned(
+                top: getResponsiveScreenHeight(-2.7),
+                left: getResponsiveScreenWidth(-0.3),
+                child: SizedBox(
+                    width: getResponsiveScreenWidth(40),
+                    child: Image.asset(
+                      'assets/images/signup_top.png',
+                      color: Colors.white.withOpacity(0.9),
+                      colorBlendMode: BlendMode.modulate,
+                    ))),
+          ],
+        ),
+      ),
+      title: const Text("Sign up", style: kTitle1),
+      leading: IconButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        icon: const Icon(Icons.arrow_back_ios_sharp),
+      ),
+    );
   }
 }

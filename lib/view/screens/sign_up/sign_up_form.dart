@@ -1,6 +1,12 @@
 // ignore_for_file: avoid_print
 
+import 'package:e_commerce/cubit/general_cubit.dart';
+
+import 'package:e_commerce/view/screens/sign_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rive/rive.dart';
 import '../../../common/constants.dart';
 import '../../../common/size_config.dart';
 import '../../../common/widgets.dart';
@@ -24,8 +30,28 @@ class _SignUpFormState extends State<SignUpForm> {
   /// hasMatch => for comparison between input and stamp
   /// emailController.text => that argument it will be the input in
   TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
   late bool _showPass1 = false;
-  late bool _showPass2 = false;
+  Artboard? riverArtboard;
+  SMIInput<double>? _progress;
+  StateMachineController? controller;
+
+  @override
+  void initState() {
+    super.initState();
+    rootBundle.load("assets/images/liquid_download.riv").then((value) {
+      final file = RiveFile.import(value);
+      final artboard = file.mainArtboard;
+      controller = StateMachineController.fromArtboard(artboard, 'Guido SM');
+      if (controller != null) {
+        artboard.addController(controller!);
+        _progress = controller!.findInput('input');
+        setState(() => riverArtboard = artboard);
+        print('riverArtboard => $riverArtboard');
+        
+      }
+    });
+  }
 
   void addError({String? error}) {
     if (!errors.contains(error)) {
@@ -45,35 +71,89 @@ class _SignUpFormState extends State<SignUpForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          buildEmailFormField(),
-          buildHeightSpace(10),
-          buildPasswordFormField(),
-          buildHeightSpace(10),
-          buildConfirmPasswordFormField(),
-          Container(
-            margin: const EdgeInsets.only(left: 1,top: 5),
-            child: FormError(errors: errors)),
-          buildHeightSpace(7),
-          defaultButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate() &&
-                  emailValidatorRegExp.hasMatch(emailController.value.text)
-                 
-                  ) {
-                _formKey.currentState!.save();
-                Navigator.of(context).pushNamed('CompleteProfile');
-              } else {
-                print('invalid email');
-              }
-            },
-            text: 'Continue',
+    return BlocConsumer<GeneralCubit, GeneralState>(
+      listener: (context, state) {
+        if (state is UserRegisterErrorState) {
+          showToast(context: context, error: state.error);
+        }
+        if (state is CreateUserSuccessState) {
+          print('User created succsesfully');
+        }
+        if (state is UserRegisterloadingState) {
+          _progress!.value + 1;
+          // print(_progress!.value++);
+          // for (var i = 0; _progress!.value < 100; i++) {
+          //   _progress!.value++;
+          // }
+
+          // print(_progress!.value);
+        }
+        if (state is CreateUserErrorState) {
+          print('Create problem');
+          showToast(context: context, error: state.error);
+        }
+      },
+      builder: (context, state) {
+        var cubit = BlocProvider.of<GeneralCubit>(context);
+        return Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              buildHeightSpace(12),
+              buildEmailFormField(),
+              buildHeightSpace(12),
+              buildPasswordFormField(),
+              buildHeightSpace(7),
+
+              // buildConfirmPasswordFormField(),
+              Container(
+                  margin: const EdgeInsets.only(left: 1, top: 5),
+                  child: FormError(errors: errors)),
+              buildHeightSpace(7),
+              state is! UserRegisterloadingState
+                  ? defaultButton(
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate() &&
+                            emailValidatorRegExp
+                                .hasMatch(emailController.value.text)) {
+                          _formKey.currentState!.save();
+                          cubit.userRegister(
+                            email: emailController.text,
+                            password: passwordController.text,
+                          );
+                          state is CreateUserSuccessState
+                              ? Navigator.of(context).pushNamed(
+                                  'SignInScreen',
+                                )
+                              : const Text('');
+                        } else {
+                          print('invalid email');
+                        }
+                      },
+                      text: 'Continue',
+                    )
+                  : riverArtboard == null
+                      ? const SizedBox()
+                      : Container(
+                          height: 100,
+                          width: 100,
+                          color: Colors.red,
+                          // padding: EdgeInsets.all(2),
+                          child: const RiveAnimation.asset(
+                            'assets/images/liquid_download.riv',
+                            alignment: Alignment.center,
+                            // artboard: riverArtboard!,
+                            fit: BoxFit.contain,
+
+                            // useArtboardSize: true,
+                          ),
+                        ),
+              buildHeightSpace(7),
+              
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -119,6 +199,7 @@ class _SignUpFormState extends State<SignUpForm> {
       height: getResponsiveScreenHeight(7),
       child: TextFormField(
         onSaved: ((newValue) => password = newValue!),
+        controller: passwordController,
         validator: (value) {
           if (value!.isEmpty) {
             addError(error: kPassNullError);
@@ -152,55 +233,6 @@ class _SignUpFormState extends State<SignUpForm> {
                 onChanged: (value) {
                   setState(() {
                     _showPass1 = value!;
-                  });
-                },
-              ),
-              customSuffixIcon(
-                svgIcon: 'assets/images/lock-security-open-svgrepo-com.svg',
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildConfirmPasswordFormField() {
-    return SizedBox(
-      width: getResponsiveScreenHeight(40),
-      height: getResponsiveScreenHeight(7),
-      child: TextFormField(
-        onSaved: ((newValue) => confirmPassword = newValue!),
-        validator: (value) {
-          if (value!.isEmpty) {
-            addError(error: kPassNullError);
-          } else if (password != value && !errors.contains(kPassNullError)) {
-            addError(error: kMatchPassError);
-          }
-          return null;
-        },
-        onChanged: (value) {
-          if (value.isNotEmpty) {
-            removeError(error: kPassNullError);
-          } else if (value.isNotEmpty && password == confirmPassword) {
-            removeError(error: kMatchPassError);
-            confirmPassword = value;
-          }
-        },
-        obscureText: _showPass2 ? false : true,
-        decoration: InputDecoration(
-          hintStyle: TextStyle(fontSize: getResponsiveScreenWidth(2.8)),
-          labelText: "Confirm Password",
-          hintText: "Re-Enter your password",
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Checkbox(
-                value: _showPass2,
-                onChanged: (value) {
-                  setState(() {
-                    _showPass2 = value!;
                   });
                 },
               ),

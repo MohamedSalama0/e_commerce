@@ -23,6 +23,8 @@ class SignUpBackground extends StatelessWidget {
               Positioned(
                   top: getResponsiveScreenHeight(-2.3),
                   left: getResponsiveScreenWidth(-7),
+                  // top: getResponsiveScreenHeight(-2.3),
+                  // left: getResponsiveScreenWidth(-7),
                   child: SizedBox(
                       width: getResponsiveScreenWidth(45),
                       child: Image.asset(
@@ -30,24 +32,22 @@ class SignUpBackground extends StatelessWidget {
                         color: Colors.white.withOpacity(0.9),
                         colorBlendMode: BlendMode.modulate,
                       ))),
-           
-               Indexed(
-                 index: 9,
-                 child: Positioned(
-                   bottom: -15,
-                   left: -7,
-
-                   child: SizedBox(
-                     width: getResponsiveScreenWidth(25),
-                     child: Image.asset(
-                            "assets/images/main_bottom.png",
-                            color: const Color.fromARGB(255, 101, 153, 142).withOpacity(0.7),
-                            // color: Colors.lightBlue.withOpacity(0.5),
-                          ),
-                     ),
-                   ),
-               ),
-              
+              Indexed(
+                index: 9,
+                child: Positioned(
+                  bottom: -16,
+                  left: -8,
+                  child: SizedBox(
+                    width: getResponsiveScreenWidth(25),
+                    child: Image.asset(
+                      "assets/images/main_bottom.png",
+                      color: const Color.fromARGB(255, 101, 153, 142)
+                          .withOpacity(0.7),
+                      // color: Colors.lightBlue.withOpacity(0.5),
+                    ),
+                  ),
+                ),
+              ),
               Indexed(
                 index: 11,
                 child: child!,
@@ -59,4 +59,3 @@ class SignUpBackground extends StatelessWidget {
     );
   }
 }
-
